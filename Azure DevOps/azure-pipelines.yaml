@@ -1,0 +1,85 @@
+name: $(Build.BuildId)
+
+trigger:
+  batch: false
+  # branches:
+  #   exclude:
+  #   - "abc"
+  paths:
+  #  include:
+  #  - 
+   exclude:
+   - template.yml
+
+# schedules:
+# - cron: "0 0 * * *"
+#   displayName: Daily midnight build
+
+pr:
+  autoCancel: true
+  branches: 
+    # include:
+    # exclude:
+  drafts: false
+
+resources:
+  repositories:
+  - repository: GitHubRepo # The name used to reference this repository in the checkout step
+    type: github
+    endpoint: GitHubServiceConnection
+    name: User/GitHubRepo
+  - repository: AzureDevOpsRepo
+    type: git
+    endpoint: AzureDevOpsServiceConnection
+    name: Organization/AzureDevOpsRepo
+
+stages:
+- stage: Build
+  displayName: Build
+  pool:
+    name: 'ubuntu-latest'
+  jobs:
+  - job: Build
+    displayName: Build and Push
+    variables:
+    - group: variable_group
+    - name: var
+      value: "World"
+    # dependsOn: Job Name
+    # condition: 
+    # pool: # Can select pool on job level as well
+    steps:
+    - checkout: GitHubRepo # Could also be a string to of the repository
+      persistCredentials: false
+      # condition: 
+      # continueOnError: 
+      displayName: Checkout GitHubRepo
+      # env:
+      #   name: value
+
+    - task: Docker@2 # Example of a task from marketplace
+      displayName: Example Reusing Task
+      inputs:
+        command: login
+        containerRegistry: ServiceConnectionName
+
+    - script: |
+          echo "Hello $(var)"
+      displayName: Hello World
+        
+- stage: Deploy
+  condition: eq(variables['Build.Reason'], 'Manual')
+  displayName: Deploy
+  dependsOn: ["Build"]
+  pool:
+    name: "Self-Hosted"
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    variables:
+    - name: var
+      value: "World"
+    steps:
+    - template: template.yml
+      parameters:
+        name: $(var)

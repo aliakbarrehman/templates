@@ -1,0 +1,21 @@
+parameters:
+- name: name
+  default: ''  # defaults for any parameters that aren't specified
+
+steps:
+  - script: |
+      echo "Hello World"
+    displayName: Copy Files
+  - script: |
+      echo "Hello ${{ parameters.name }}"
+    displayName: Start Containers
+  # An example of setting variables at Runtime because it is a pain
+  - script: |
+      echo "##vso[task.setvariable variable=new_name;]John Doe"
+    target:
+     settableVariables:
+      - newName
+    displayName: Set Variables
+  - bash: 
+      echo "Hello $(new_name)"
+    displayName: Use Variables
