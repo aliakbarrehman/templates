@@ -1,2 +1,2 @@
 # Templates
-### Repository to contain common templates for pipeline yaml files as reference
+Repository to contain common templates for useful yaml files as reference
