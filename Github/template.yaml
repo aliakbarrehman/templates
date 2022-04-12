@@ -1,0 +1,26 @@
+name: Hello World
+
+on:
+  workflow_call:
+    inputs:
+      middle_name:
+        description: 'Hello Name'     
+        required: true
+        default: 'World' 
+        type: string # string | boolean | choice
+        # options:
+        # - A
+        # - B
+    outputs:
+      last_name:
+        description: 'Name to echo'
+        value: ${{ steps.name_generator.outputs.name }}
+
+jobs:
+  last_name_setter:
+    name: Set Name
+    # env:
+    steps:
+      - run: echo "::set-output name=name::${{ github.event.inputs.middle_name }} Rehman"
+        name: Set Name
+        shell: bash

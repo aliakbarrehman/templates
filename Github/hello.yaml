@@ -1,0 +1,62 @@
+name: Hello World
+
+on:
+  pull_request:
+    types: 
+      - closed
+    # branches:
+    # paths:
+  push:
+    branches:    
+      - 'main'
+    tags:
+      - 'build'
+  # schedule:
+  #   - cron:  '0 0 * * *'
+  workflow_dispatch: # workflow_call can accept inputs as well and in addition can have secrets and outputs
+    inputs:
+      name:
+        description: 'Hello Name'     
+        required: true
+        default: 'World' 
+        type: string # string | boolean | choice
+        # options:
+        # - A
+        # - B
+
+env:
+  middle_name: "value"
+
+jobs:
+  variable_setter:
+    continue-on-error: false
+    name: Set Variables
+    outputs:
+      first_name: ${{ steps.name_setter.outputs.name }}
+    steps:
+      - id: name_setter
+        run: echo "::set-output name=name::Ali" # add-mask is another useful command
+
+  hello:
+    if: ${{ github.ref_name == 'main' }} # Check github actions expressions and context
+    name: Hello Person
+    needs: [variable_setter] # same as azure devops depends_on
+    # env:
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v3
+        with: # is used to pass values to the action
+          repository: aliakbarrehman/templates
+          ref: main
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          # path: # By default just clone to pwd
+
+      - id: get_last_name
+        name: Get Last Name
+        uses: aliakbarrehman/templates/Github/template.yaml
+        with:
+          middle_name: ${{ env.middle_name }}
+
+      - run: echo "${{ needs.variable_setter.outputs.first_name }} ${{ steps.get_last_name.outputs.last_name }}"
+        name: Hello World
+        shell: bash
